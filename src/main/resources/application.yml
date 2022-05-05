@@ -1,0 +1,63 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: 'store'
+  profiles:
+    active: default
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    discovery:
+      enabled: true
+
+security:
+  oauth2:
+    resource:
+      user-info-uri: http://localhost:8084/user
+
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      default-zone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+# Resiliece4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      storeService:
+        timeoutDuration: 2s
+        registerHealthIndicator: true
+        slidingWindowSize: 8
+        minimumNumberOfCalls: 4
+        waitDurationInOpenState: 2s
+
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 2s
+    instances:
+      storeService:
+        baseConfig: default
+        timeoutDuration: 1s
+        cancelRunningFuture: true
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 2
+        maxWaitDuration: 0
+    instances:
+      storeService:
+        baseConfig: default
+#    shareSecurityContext: true
+#
+#resilience4j.retry:
+#  instances:
+#    storeService:
+#      maxAttempts: 3
+#      waitDuration: 10s
